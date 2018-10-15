@@ -1,0 +1,33 @@
+
+:root{
+	--variable: #00bcd4;
+}
+
+/*	var(--name);	*/
+
+/*	#803c42	*/
+
+
+.parallax-container {
+	height: 300px;
+}
+
+.full-width {
+	margin-bottom: 15px;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	
+	
+}
+main {
+	flex: 1 0 auto;
+}
+
+
+
+
+
