@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Merge Files for LLM Prompt</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, Arial, sans-serif;
+      padding: 40px;
+      background-color: #f9f9f9;
+      text-align: center;
+    }
+    #drop-zone {
+      border: 3px dashed #ccc;
+      padding: 10px;
+      margin-top: 20px;
+      color: #666;
+      border-radius: 10px;
+      background-color: #fff;
+    }
+    #drop-zone.hover {
+      border-color: #333;
+      background-color: #f0f0f0;
+    }
+	#file-list {
+      border: 3px solid #ccc;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      text-align: left;
+      max-height: 300px;
+      overflow: auto;
+    }
+	.label {
+	  margin: 35px 0px;
+	}
+    .options {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    label {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Drag & Drop Files to Merge</h1>
+<span><strong>Supported formats:</strong> maybe .cs, .java, .kt, .js, .py, and something else...</span>
+<div id="drop-zone">
+	<div class="label"><strong>Drop your files here</strong></div>
+	<div id="file-list" hidden></div>
+</div>
+
+<div class="options">
+  <span style="font-weight:bold">Download options:</span>
+  <label><input type="radio" name="action" value="copy-text"> Copy as Text</label>
+  <label><input type="radio" name="action" value="copy-file" checked> Copy as File</label>
+  <label><input type="radio" name="action" value="download"> Download</label>
+</div>
+
+
+
+<button id="process-btn" disabled>Process Files</button>
+
+<script>
+  const dropZone = document.getElementById('drop-zone');
+  const processBtn = document.getElementById('process-btn');
+  const fileList = document.getElementById('file-list');
+  
+  let allText = '';
+  let fileNames = [];
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('hover');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('hover');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('hover');
+    const files = e.dataTransfer.files;
+    processBtn.disabled = true; // Reset button state on new drop
+	fileList.hidden = true;
+    handleFiles(files);
+  });
+
+  function handleFiles(files) {
+    if (!files.length) return;
+    
+    fileList.innerHTML = "<strong>Files dropped:</strong><ul>";
+
+    fileNames = Array.from(files).map(f => f.name);
+
+    const readerPromises = Array.from(files).map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          resolve({
+            name: file.name,
+            content: event.target.result
+          });
+        };
+        reader.onerror = () => reject(file.name);
+        reader.readAsText(file);
+      });
+    });
+
+    Promise.all(readerPromises)
+      .then(results => {
+        allText = results.map(result => {
+          return `--- ${result.name} ---\n${result.content}\n`;
+        }).join('\n');
+        fileList.innerHTML += "</ul>";
+        processBtn.disabled = false; // Enable button after files are processed
+		fileList.hidden = false;
+      })
+      .catch(err => {
+        alert("Error reading one or more files.");
+        console.error(err);
+      });
+    
+    Array.from(files).forEach(file => {
+      fileList.innerHTML += `<li>${file.name}</li>`;
+    });
+  }
+
+  processBtn.addEventListener('click', async () => {
+    const selectedAction = document.querySelector('input[name="action"]:checked').value;
+
+    if (selectedAction === 'copy-text') {
+      await navigator.clipboard.writeText(allText);
+      alert('Merged content copied to clipboard as text!');
+    }
+	else if (selectedAction === 'copy-file') {
+      const blob = new Blob([allText], { type: 'text/plain' });
+      const data = [new ClipboardItem({ [blob.type]: blob })];
+      await navigator.clipboard.write(data);
+      alert('Merged file copied to clipboard as a file!');
+    }
+	else if (selectedAction === 'download') {
+      const blob = new Blob([allText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'merged_files.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  });
+</script>
+
+</body>
+</html>
