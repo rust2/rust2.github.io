@@ -54,7 +54,14 @@
 <body>
 
 <h1>Drag & Drop Files to Merge</h1>
-<span><strong>Supported formats:</strong> maybe .cs, .java, .kt, .js, .py, and something else...</span>
+<span>
+	<strong>Supported formats:</strong> maybe .cs, .java, .kt, .js, .py, and something else...
+	<br>
+	<br>
+	<strong>Note:</strong> Only files are expected to be dropped.
+	<br>
+	Folder processing is not implemented and will not work as you'd expect.
+</span>
 <div id="drop-zone">
 	<div class="label"><strong>Drop your files here</strong></div>
 	<div id="file-list" hidden></div>
@@ -66,8 +73,6 @@
   <label><input type="radio" name="action" value="copy-file" checked> Copy as File</label>
   <label><input type="radio" name="action" value="download"> Download</label>
 </div>
-
-
 
 <button id="process-btn" disabled>Process Files</button>
 
