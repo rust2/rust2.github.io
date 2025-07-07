@@ -160,7 +160,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'merged_files.txt';
+      a.download = `merged_files_${Date.now()}.txt`;
       a.click();
       URL.revokeObjectURL(url);
     }
